@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venda de Cursos</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- Font Awesome -->
+    <style>
+        body {
+            background-color: #f4f4f4;
+        }
+        .toast {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+        .dropdown {
+            display: none;
+            position: absolute;
+            background-color: white;
+            border: 1px solid #ccc;
+            z-index: 10;
+            width: 300px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .dropdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            cursor: pointer;
+        }
+        .dropdown-item:hover {
+            background-color: #f0f0f0;
+        }
+        .category-title {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="bg-white shadow-md p-4 relative">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Meu E-commerce de Cursos</h1>
+            <div class="flex-grow flex items-center mx-4">
+                <button id="menu-button" class="mr-2">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <input type="text" id="search-input" placeholder="Buscar curso..." class="border rounded p-2 flex-grow" />
+            </div>
+            <div class="relative">
+                <button id="cart-button" class="text-gray-700">
+                    <i class="fas fa-shopping-cart fa-lg"></i>
+                    <span id="cart-badge" class="absolute top-0 right-0 bg-red-500 text-white rounded-full text-xs px-1">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Dropdown de Categorias -->
+    <div id="dropdown" class="dropdown">
+        <div class="dropdown-item" onmouseover="showCourses('Desenvolvimento')">
+            <span class="category-title">Desenvolvimento</span>
+            <i class="fas fa-chevron-right"></i>
+        </div>
+        <div class="dropdown-item" onmouseover="showCourses('Design')">
+            <span class="category-title">Design</span>
+            <i class="fas fa-chevron-right"></i>
+        </div>
+        <div class="dropdown-item" onmouseover="showCourses('Marketing')">
+            <span class="category-title">Marketing</span>
+            <i class="fas fa-chevron-right"></i>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i> Curso adicionado ao carrinho com sucesso!
+    </div>
+
+    <!-- Carrinho Modal -->
+    <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center">
+        <div class="bg-white rounded-lg p-6 w-7/12 h-9/10 max-w-md mx-auto">
+            <h2 class="text-xl font-bold mb-4">Carrinho de Compras</h2>
+            <div id="cart-items" class="mb-4"></div>
+            <div id="empty-cart-message" class="text-center text-gray-600 hidden">Adicione um curso ao carrinho!</div>
+            <div id="duplicate-course-message" class="text-red-500 hidden">O curso já se encontra no carrinho.</div>
+            <div class="flex justify-between mt-4">
+                <button id="checkout-button" class="bg-green-500 text-white py-1 px-2 rounded hidden">Ir para Checkout</button>
+                <button id="clear-cart-button" class="mt-4 bg-red-500 text-white py-1 px-2 rounded">Esvaziar Carrinho</button>
+            </div>
+            <button id="close-modal" class="mt-4 text-red-500">Fechar</button>
+        </div>
+    </div>
+
+    <div class="container mx-auto p-6">
+        <h2 class="text-3xl font-bold text-center mb-6">Cursos Disponíveis</h2>
+        <div id="courses" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Os cursos serão renderizados aqui -->
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+        const courses = [
+            { nome: 'Curso de Inglês Completo', preco: 10000, imagem: 'https://uniateneu.edu.br/wp-content/uploads/2023/06/Curso-de-Ingles-Comunicativo-e-Conversacional.png', categoria: 'Desenvolvimento' },
+            { nome: 'Curso de Programação em Python', preco: 12000, imagem: 'https://codigofacilito.com/system/courses/thumbnails/000/000/340/original/python-thumb.jpg?1635347671', categoria: 'Desenvolvimento' },
+            { nome: 'Curso de Design Gráfico', preco: 15000, imagem: 'https://flag.pt/media/2020/05/CE_DG_site_blog_data.png', categoria: 'Design' },
+            // Adicione mais cursos conforme necessário
+        ];
+
+        function renderCourses(coursesToRender) {
+            const coursesContainer = document.getElementById('courses');
+            coursesContainer.innerHTML = '';
+            coursesToRender.slice(0, 12).forEach(course => { // Exibe apenas 12 cursos
+                coursesContainer.innerHTML += `
+                    <div class="bg-white shadow-lg rounded-lg p-4 course-item" data-category="${course.categoria}">
+                        <img src="${course.imagem}" alt="${course.nome}" class="h-48 object-cover rounded-t-lg" />
+                        <h3 class="text-xl font-semibold mt-2">${course.nome}</h3>
+                        <p class="text-gray-600">Aprenda com nosso curso especializado.</p>
+                        <h4 class="text-lg font-bold mt-2">Preço: ${course.preco} Escudos</h4>
+                        <div class="flex items-center mt-2">
+                            <span class="text-yellow-500">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i> <!-- Estrela vazia -->
+                            </span>
+                            <span class="ml-2 text-gray-600">(4.0)</span> <!-- Avaliação -->
+                        </div>
+                        <button class="cta-button mt-4 bg-green-500 text-white py-2 px-4 rounded" onclick="adicionarAoCarrinho('${course.nome}', ${course.preco})">Adicionar ao Carrinho</button>
+                    </div>
+                `;
+            });
+        }
+
+        function searchCourses() {
+            const searchInput = document.getElementById('search-input').value.toLowerCase();
+            const filteredCourses = courses.filter(course => course.nome.toLowerCase().includes(searchInput));
+            renderCourses(filteredCourses);
+        }
+
+        function showCourses(categoria) {
+            const filteredCourses = courses.filter(course => course.categoria === categoria);
+            renderCourses(filteredCourses);
+        }
+
+        document.getElementById('search-input').addEventListener('input', searchCourses);
+        document.getElementById('menu-button').addEventListener('click', () => {
+            const dropdown = document.getElementById('dropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // Fechar o dropdown ao sair com o mouse
+        document.getElementById('dropdown').addEventListener('mouseleave', () => {
+            document.getElementById('dropdown').style.display = 'none';
+        });
+
+        function adicionarAoCarrinho(nomeCurso, precoCurso) {
+            const cursoExistente = cart.find(item => item.nome === nomeCurso);
+            if (cursoExistente) {
+                mostrarToast('duplicate-course-message');
+                return;
+            }
+            cart.push({ nome: nomeCurso, preco: precoCurso });
+            atualizarCarrinho();
+            mostrarToast('toast');
+        }
+
+        function mostrarToast(toastId) {
+            const toast = document.getElementById(toastId);
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        function atualizarCarrinho() {
+            const cartBadge = document.getElementById('cart-badge');
+            const cartItems = document.getElementById('cart-items');
+            const emptyCartMessage = document.getElementById('empty-cart-message');
+            const checkoutButton = document.getElementById('checkout-button');
+            const clearCartButton = document.getElementById('clear-cart-button');
+
+            cartBadge.innerText = cart.length;
+
+            cartItems.innerHTML = '';
+            if (cart.length === 0) {
+                emptyCartMessage.classList.remove('hidden');
+                checkoutButton.classList.add('hidden');
+                clearCartButton.classList.add('hidden');
+            } else {
+                emptyCartMessage.classList.add('hidden');
+                checkoutButton.classList.remove('hidden');
+                clearCartButton.classList.remove('hidden');
+                cart.forEach((item, index) => {
+                    cartItems.innerHTML += `<div class="flex items-center mb-2">
+                        <img src="${item.imagem}" alt="${item.nome}" class="h-16 w-16 object-cover rounded mr-2">
+                        <div class="flex-1">
+                            <span class="block font-semibold">${item.nome}</span>
+                            <span class="block text-gray-600">${item.preco} Escudos</span>
+                        </div>
+                        <button class="text-red-500" onclick="removerDoCarrinho(${index})">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>`;
+                });
+            }
+        }
+
+        function removerDoCarrinho(index) {
+            cart.splice(index, 1);
+            atualizarCarrinho();
+        }
+
+        document.getElementById('cart-button').addEventListener('click', () => {
+            document.getElementById('cart-modal').classList.toggle('hidden');
+        });
+
+        document.getElementById('close-modal').addEventListener('click', () => {
+            document.getElementById('cart-modal').classList.add('hidden');
+        });
+
+        document.getElementById('checkout-button').addEventListener('click', () => {
+            alert('Redirecionando para a página de checkout...');
+        });
+
+        document.getElementById('clear-cart-button').addEventListener('click', () => {
+            cart = [];
+            atualizarCarrinho();
+        });
+
+        // Renderiza todos os cursos inicialmente
+        renderCourses(courses);
+    </script>
+</body>
+</html>
