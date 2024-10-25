@@ -6,6 +6,7 @@
     <title>Venda de Cursos</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
     <style>
         body {
             background-color: #f4f4f4;
@@ -22,27 +23,18 @@
             border-radius: 5px;
             z-index: 1000;
         }
-        .dropdown {
-            display: none;
-            position: absolute;
-            background-color: white;
-            border: 1px solid #ccc;
-            z-index: 10;
-            width: 300px;
-            padding: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .dropdown-item {
+        .swiper-slide {
             display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            cursor: pointer;
+            justify-content: center;
+            align-items: flex-start;
         }
-        .dropdown-item:hover {
-            background-color: #f0f0f0;
+        .course-item {
+            display: flex;
+            flex-direction: column; /* Alinha os elementos verticalmente */
+            height: 100%; /* Faz com que o card ocupe toda a altura do slide */
         }
-        .category-title {
-            font-weight: bold;
+        .course-content {
+            flex-grow: 1; /* Faz com que o conteúdo do curso ocupe o espaço restante */
         }
     </style>
 </head>
@@ -67,19 +59,39 @@
         </div>
     </header>
 
-    <!-- Dropdown de Categorias -->
-    <div id="dropdown" class="dropdown">
-        <div class="dropdown-item" onmouseover="showCourses('Desenvolvimento')">
-            <span class="category-title">Desenvolvimento</span>
-            <i class="fas fa-chevron-right"></i>
+    <!-- Seções de Cursos -->
+    <div class="container mx-auto p-6">
+        <div id="development-section" class="mb-10">
+            <h2 class="text-3xl font-bold text-center mb-6">Cursos de Desenvolvimento</h2>
+            <div class="swiper-container">
+                <div class="swiper-wrapper" id="development-courses">
+                    <!-- Cursos de Desenvolvimento serão renderizados aqui -->
+                </div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
         </div>
-        <div class="dropdown-item" onmouseover="showCourses('Design')">
-            <span class="category-title">Design</span>
-            <i class="fas fa-chevron-right"></i>
+
+        <div id="design-section" class="mb-10">
+            <h2 class="text-3xl font-bold text-center mb-6">Cursos de Design</h2>
+            <div class="swiper-container">
+                <div class="swiper-wrapper" id="design-courses">
+                    <!-- Cursos de Design serão renderizados aqui -->
+                </div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
         </div>
-        <div class="dropdown-item" onmouseover="showCourses('Marketing')">
-            <span class="category-title">Marketing</span>
-            <i class="fas fa-chevron-right"></i>
+
+        <div id="marketing-section" class="mb-10">
+            <h2 class="text-3xl font-bold text-center mb-6">Cursos de Marketing</h2>
+            <div class="swiper-container">
+                <div class="swiper-wrapper" id="marketing-courses">
+                    <!-- Cursos de Marketing serão renderizados aqui -->
+                </div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
         </div>
     </div>
 
@@ -103,68 +115,99 @@
         </div>
     </div>
 
-    <div class="container mx-auto p-6">
-        <h2 class="text-3xl font-bold text-center mb-6">Cursos Disponíveis</h2>
-        <div id="courses" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Os cursos serão renderizados aqui -->
-        </div>
-    </div>
-
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <script>
         let cart = [];
-        const courses = [
-            { nome: 'Curso de Inglês Completo', preco: 10000, imagem: 'https://uniateneu.edu.br/wp-content/uploads/2023/06/Curso-de-Ingles-Comunicativo-e-Conversacional.png', categoria: 'Desenvolvimento' },
-            { nome: 'Curso de Programação em Python', preco: 12000, imagem: 'https://codigofacilito.com/system/courses/thumbnails/000/000/340/original/python-thumb.jpg?1635347671', categoria: 'Desenvolvimento' },
-            { nome: 'Curso de Design Gráfico', preco: 15000, imagem: 'https://flag.pt/media/2020/05/CE_DG_site_blog_data.png', categoria: 'Design' },
-            // Adicione mais cursos conforme necessário
-        ];
+        let courses = []; // Inicializa a variável courses
 
-        function renderCourses(coursesToRender) {
-            const coursesContainer = document.getElementById('courses');
-            coursesContainer.innerHTML = '';
-            coursesToRender.slice(0, 12).forEach(course => { // Exibe apenas 12 cursos
-                coursesContainer.innerHTML += `
+        // Inicializa o Swiper
+        const swiperInstances = [];
+
+        function initializeSwiper(container) {
+            return new Swiper(container, {
+                slidesPerView: 4, // Número de cursos visíveis
+                spaceBetween: 30, // Espaço entre os cursos
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+            });
+        }
+
+        async function loadCoursesByCategory() {
+            try {
+                const response = await fetch('cursos.json');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                courses = data; // Armazena os cursos na variável global
+
+                // Renderiza os cursos por categoria
+                renderCoursesByCategory();
+            } catch (error) {
+                console.error('Houve um problema com a requisição Fetch:', error);
+            }
+        }
+
+        function renderCoursesByCategory() {
+            const developmentCourses = courses.filter(course => course.categoria === 'Desenvolvimento');
+            const designCourses = courses.filter(course => course.categoria === 'Design');
+            const marketingCourses = courses.filter(course => course.categoria === 'Marketing');
+
+            renderCourses(developmentCourses, 'development-courses');
+            renderCourses(designCourses, 'design-courses');
+            renderCourses(marketingCourses, 'marketing-courses');
+        }
+
+        function renderCourses(coursesToRender, containerId) {
+            const coursesContainer = document.getElementById(containerId);
+            coursesContainer.innerHTML = ''; // Limpa o conteúdo anterior
+
+            coursesToRender.forEach(course => {
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide'; // Classe necessária para o Swiper
+                slide.innerHTML = `
                     <div class="bg-white shadow-lg rounded-lg p-4 course-item" data-category="${course.categoria}">
-                        <img src="${course.imagem}" alt="${course.nome}" class="h-48 object-cover rounded-t-lg" />
-                        <h3 class="text-xl font-semibold mt-2">${course.nome}</h3>
-                        <p class="text-gray-600">Aprenda com nosso curso especializado.</p>
-                        <h4 class="text-lg font-bold mt-2">Preço: ${course.preco} Escudos</h4>
-                        <div class="flex items-center mt-2">
-                            <span class="text-yellow-500">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="far fa-star"></i> <!-- Estrela vazia -->
-                            </span>
-                            <span class="ml-2 text-gray-600">(4.0)</span> <!-- Avaliação -->
+                        <img src="${course.imagem}" alt="${course.nome}" class="w-full h-48 object-cover rounded-t-lg" />
+                        <div class="course-content flex-grow"> <!-- Adiciona flex-grow para ocupar o espaço restante -->
+                            <h3 class="text-xl font-semibold mt-2">${course.nome}</h3>
+                            <p class="text-gray-600">${course.descricao}</p>
                         </div>
+                        <h4 class="text-lg font-bold mt-2">${course.preco} Escudos</h4>
                         <button class="cta-button mt-4 bg-green-500 text-white py-2 px-4 rounded" onclick="adicionarAoCarrinho('${course.nome}', ${course.preco})">Adicionar ao Carrinho</button>
                     </div>
                 `;
+                coursesContainer.appendChild(slide); // Adiciona o slide ao container
             });
+
+            // Inicializa o Swiper para o container atual
+            const swiper = initializeSwiper(coursesContainer.parentNode);
+            swiper.update(); // Atualiza o Swiper para reconhecer os novos slides
         }
 
         function searchCourses() {
             const searchInput = document.getElementById('search-input').value.toLowerCase();
             const filteredCourses = courses.filter(course => course.nome.toLowerCase().includes(searchInput));
-            renderCourses(filteredCourses);
-        }
-
-        function showCourses(categoria) {
-            const filteredCourses = courses.filter(course => course.categoria === categoria);
-            renderCourses(filteredCourses);
+            renderCoursesByCategory(filteredCourses);
         }
 
         document.getElementById('search-input').addEventListener('input', searchCourses);
-        document.getElementById('menu-button').addEventListener('click', () => {
-            const dropdown = document.getElementById('dropdown');
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        document.getElementById('cart-button').addEventListener('click', () => {
+            document.getElementById('cart-modal').classList.toggle('hidden');
         });
 
-        // Fechar o dropdown ao sair com o mouse
-        document.getElementById('dropdown').addEventListener('mouseleave', () => {
-            document.getElementById('dropdown').style.display = 'none';
+        document.getElementById('close-modal').addEventListener('click', () => {
+            document.getElementById('cart-modal').classList.add('hidden');
+        });
+
+        document.getElementById('checkout-button').addEventListener('click', () => {
+            alert('Redirecionando para a página de checkout...');
+        });
+
+        document.getElementById('clear-cart-button').addEventListener('click', () => {
+            cart = [];
+            atualizarCarrinho();
         });
 
         function adicionarAoCarrinho(nomeCurso, precoCurso) {
@@ -224,25 +267,8 @@
             atualizarCarrinho();
         }
 
-        document.getElementById('cart-button').addEventListener('click', () => {
-            document.getElementById('cart-modal').classList.toggle('hidden');
-        });
-
-        document.getElementById('close-modal').addEventListener('click', () => {
-            document.getElementById('cart-modal').classList.add('hidden');
-        });
-
-        document.getElementById('checkout-button').addEventListener('click', () => {
-            alert('Redirecionando para a página de checkout...');
-        });
-
-        document.getElementById('clear-cart-button').addEventListener('click', () => {
-            cart = [];
-            atualizarCarrinho();
-        });
-
-        // Renderiza todos os cursos inicialmente
-        renderCourses(courses);
+        // Chama a função para carregar os cursos por categoria
+        loadCoursesByCategory();
     </script>
 </body>
 </html>
