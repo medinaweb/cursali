@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Venda de Cursos</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
     <style>
         body {
             background-color: #f4f4f4;
+            overflow-x: hidden; /* Remove o scroll horizontal */
         }
         .toast {
             display: none;
@@ -17,11 +18,34 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #4caf50;
-            color: white;
+            background-color: #28a040; /* Cor de fundo verde */
+            color: white; /* Texto branco */
             padding: 10px 20px;
             border-radius: 5px;
             z-index: 1000;
+            display: flex; /* Flex para alinhar ícone e texto */
+            align-items: center; /* Centraliza verticalmente */
+        }
+        .toastexiste {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #eaf4ec; /* Cor de fundo verde */
+            color: #28a040; /* Texto branco */
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            border: 1px solid #28a040;
+            display: flex; /* Flex para alinhar ícone e texto */
+            align-items: center; /* Centraliza verticalmente */
+        }
+        .toast i {
+            margin-right: 10px; /* Espaçamento entre ícone e texto */
+        }
+        .toastexiste i {
+            margin-right: 10px; /* Espaçamento entre ícone e texto */
         }
         .swiper-slide {
             display: flex;
@@ -30,11 +54,50 @@
         }
         .course-item {
             display: flex;
-            flex-direction: column; /* Alinha os elementos verticalmente */
-            height: 100%; /* Faz com que o card ocupe toda a altura do slide */
+            flex-direction: column;
+            height: 100%; /* Faz com que todos os cards tenham a mesma altura */
         }
         .course-content {
-            flex-grow: 1; /* Faz com que o conteúdo do curso ocupe o espaço restante */
+            flex-grow: 1;
+            overflow: hidden; /* Esconde o conteúdo que ultrapassa */
+            text-overflow: ellipsis; /* Adiciona reticências */
+            display: -webkit-box; /* Para o efeito de múltiplas linhas */
+            -webkit-box-orient: vertical; /* Para o efeito de múltiplas linhas */
+            -webkit-line-clamp: 2; /* Limita a 2 linhas */
+            line-clamp: 2; /* Limita a 2 linhas para compatibilidade */
+        }
+        /* Estilo do modal */
+        #cart-modal {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000; /* Garante que o modal fique acima de outros elementos */
+            display: none; /* O modal começa oculto */
+        }
+        .modal-content {
+            width: 40%; /* Largura do modal */
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative; /* Para posicionar o ícone de fechar */
+        }
+        .close-modal {
+            position: absolute;
+            top: 20px !important;
+            right: 20px !important;
+            cursor: pointer;
+            color: #aeaeae; /* Cor do ícone de fechar */
+            font-size: 25px !important;
+        }
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
@@ -45,9 +108,6 @@
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-2xl font-bold">Meu E-commerce de Cursos</h1>
             <div class="flex-grow flex items-center mx-4">
-                <button id="menu-button" class="mr-2">
-                    <i class="fas fa-bars"></i>
-                </button>
                 <input type="text" id="search-input" placeholder="Buscar curso..." class="border rounded p-2 flex-grow" />
             </div>
             <div class="relative">
@@ -59,146 +119,195 @@
         </div>
     </header>
 
-    <!-- Seções de Cursos -->
+    <!-- Seões de Cursos -->
     <div class="container mx-auto p-6">
-        <div id="development-section" class="mb-10">
-            <h2 class="text-3xl font-bold text-center mb-6">Cursos de Desenvolvimento</h2>
-            <div class="swiper-container">
-                <div class="swiper-wrapper" id="development-courses">
-                    <!-- Cursos de Desenvolvimento serão renderizados aqui -->
-                </div>
-                <div class="swiper-button-next"></div>
-                <div class="swiper-button-prev"></div>
-            </div>
-        </div>
-
-        <div id="design-section" class="mb-10">
-            <h2 class="text-3xl font-bold text-center mb-6">Cursos de Design</h2>
-            <div class="swiper-container">
-                <div class="swiper-wrapper" id="design-courses">
-                    <!-- Cursos de Design serão renderizados aqui -->
-                </div>
-                <div class="swiper-button-next"></div>
-                <div class="swiper-button-prev"></div>
-            </div>
-        </div>
-
-        <div id="marketing-section" class="mb-10">
-            <h2 class="text-3xl font-bold text-center mb-6">Cursos de Marketing</h2>
-            <div class="swiper-container">
-                <div class="swiper-wrapper" id="marketing-courses">
-                    <!-- Cursos de Marketing serão renderizados aqui -->
-                </div>
-                <div class="swiper-button-next"></div>
-                <div class="swiper-button-prev"></div>
-            </div>
-        </div>
+        <div id="courses-container"></div>
     </div>
 
     <!-- Toast -->
-    <div id="toast" class="toast">
-        <i class="fas fa-check-circle"></i> Curso adicionado ao carrinho com sucesso!
-    </div>
+    <div id="toast" class="toast hidden">Curso adicionado ao carrinho com sucesso!</div>
+
+    <!-- Toast Curso Já Existe -->
+    <div id="toastexiste" class="toastexiste hidden">Este curso já está no carrinho!</div>
 
     <!-- Carrinho Modal -->
-    <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center">
-        <div class="bg-white rounded-lg p-6 w-7/12 h-9/10 max-w-md mx-auto">
-            <h2 class="text-xl font-bold mb-4">Carrinho de Compras</h2>
+    <div id="cart-modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-modal"><i title="Fechar" class="fa-regular fa-circle-xmark fa-lg"></i></span>
+            <h2 class="text-xl text-center font-bold mb-1">Carrinho de Compras</h2>
+            <h5 class="text-xs text-center font-light mb-4">Obrigado por comprar aqui!</h5>
             <div id="cart-items" class="mb-4"></div>
-            <div id="empty-cart-message" class="text-center text-gray-600 hidden">Adicione um curso ao carrinho!</div>
-            <div id="duplicate-course-message" class="text-red-500 hidden">O curso já se encontra no carrinho.</div>
-            <div class="flex justify-between mt-4">
-                <button id="checkout-button" class="bg-green-500 text-white py-1 px-2 rounded hidden">Ir para Checkout</button>
-                <button id="clear-cart-button" class="mt-4 bg-red-500 text-white py-1 px-2 rounded">Esvaziar Carrinho</button>
+            <div id="empty-cart-message" class="text-center text-gray-600 hidden">Adicione um curso</div>
+            
+            <div id="total-container" class="mt-4 hidden">
+                <h3 class="text-lg font-bold">Total: <span id="total-price">$00</span></h3>
             </div>
-            <button id="close-modal" class="mt-4 text-red-500">Fechar</button>
+            
+            <div class="flex justify-between mt-4">
+                <button id="checkout-button" class="bg-blue-500 text-white py-1 px-2 rounded hidden"><i class="fa-brands fa-cc-visa"></i> Checkout</button>
+                <button id="clear-cart-button" class="mt-4 bg-red-500 text-white py-1 px-2 rounded hidden"><i class="fa-solid fa-cart-flatbed-empty"></i> Esvaziar Carrinho</button>
+            </div>
+           
         </div>
     </div>
 
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <script>
         let cart = [];
-        let courses = []; // Inicializa a variável courses
+        let courses = [];
 
-        // Inicializa o Swiper
-        const swiperInstances = [];
-
-        function initializeSwiper(container) {
-            return new Swiper(container, {
-                slidesPerView: 4, // Número de cursos visíveis
-                spaceBetween: 30, // Espaço entre os cursos
-                navigation: {
-                    nextEl: '.swiper-button-next',
-                    prevEl: '.swiper-button-prev',
-                },
-            });
-        }
-
-        async function loadCoursesByCategory() {
+        async function loadCourses() {
             try {
                 const response = await fetch('cursos.json');
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                courses = data; // Armazena os cursos na variável global
-
-                // Renderiza os cursos por categoria
+                if (!response.ok) throw new Error('Erro ao carregar cursos');
+                courses = await response.json();
                 renderCoursesByCategory();
             } catch (error) {
-                console.error('Houve um problema com a requisição Fetch:', error);
+                console.error(error);
+                alert('Não foi possível carregar os cursos. Tente novamente mais tarde.');
             }
         }
 
         function renderCoursesByCategory() {
-            const developmentCourses = courses.filter(course => course.categoria === 'Desenvolvimento');
-            const designCourses = courses.filter(course => course.categoria === 'Design');
-            const marketingCourses = courses.filter(course => course.categoria === 'Marketing');
+            const categories = [...new Set(courses.map(course => course.categoria))];
+            const coursesContainer = document.getElementById('courses-container');
+            coursesContainer.innerHTML = '';
 
-            renderCourses(developmentCourses, 'development-courses');
-            renderCourses(designCourses, 'design-courses');
-            renderCourses(marketingCourses, 'marketing-courses');
+            categories.forEach(category => {
+                const categoryCourses = courses.filter(course => course.categoria === category);
+                const section = document.createElement('div');
+                section.className = 'mb-10';
+                section.innerHTML = `
+                    <h2 class="text-3xl font-bold text-left mb-6">${category} <i class="fa-solid fa-angle-right fa-xs mt-4"></i></h2>
+                    <div class="swiper-container">
+                        <div class="swiper-wrapper" id="${category.replace(/\s+/g, '-').toLowerCase()}-courses"></div>
+                        <div class="swiper-button-next"></div>
+                        <div class="swiper-button-prev"></div>
+                    </div>
+                `;
+                coursesContainer.appendChild(section);
+                renderCourses(categoryCourses, `${category.replace(/\s+/g, '-').toLowerCase()}-courses`);
+            });
+
+            // Inicializa todos os carrosséis
+            const swipers = document.querySelectorAll('.swiper-container');
+            swipers.forEach(swiperContainer => {
+                new Swiper(swiperContainer, {
+                    slidesPerView: 4, // Exibe 4 cursos por vez
+                    spaceBetween: 30,
+                    /*navigation: {
+                        nextEl: swiperContainer.querySelector('.swiper-button-next'),
+                        prevEl: swiperContainer.querySelector('.swiper-button-prev'),
+                    },*/
+                });
+            });
         }
 
         function renderCourses(coursesToRender, containerId) {
             const coursesContainer = document.getElementById(containerId);
-            coursesContainer.innerHTML = ''; // Limpa o conteúdo anterior
-
             coursesToRender.forEach(course => {
                 const slide = document.createElement('div');
-                slide.className = 'swiper-slide'; // Classe necessária para o Swiper
+                slide.className = 'swiper-slide';
                 slide.innerHTML = `
-                    <div class="bg-white shadow-lg rounded-lg p-4 course-item" data-category="${course.categoria}">
+                    <div class="bg-white shadow-lg rounded-lg p-4 course-item">
                         <img src="${course.imagem}" alt="${course.nome}" class="w-full h-48 object-cover rounded-t-lg" />
-                        <div class="course-content flex-grow"> <!-- Adiciona flex-grow para ocupar o espaço restante -->
-                            <h3 class="text-xl font-semibold mt-2">${course.nome}</h3>
+                        <div class="course-content flex-grow">
+                            <h3 class="text-xl font-semibold mt-4">${course.nome}</h3>
                             <p class="text-gray-600">${course.descricao}</p>
                         </div>
-                        <h4 class="text-lg font-bold mt-2">${course.preco} Escudos</h4>
-                        <button class="cta-button mt-4 bg-green-500 text-white py-2 px-4 rounded" onclick="adicionarAoCarrinho('${course.nome}', ${course.preco})">Adicionar ao Carrinho</button>
+                        <h4 class="text-lg font-bold mt-2">${course.preco}$00</h4> <!-- Usando o símbolo de dólar -->
+                        <button class="cta-button mt-4 bg-green-500 text-white py-2 px-4 rounded" onclick="adicionarAoCarrinho('${course.nome}', ${course.preco}, '${course.imagem}')"><i class="fa-solid fa-plus"></i> Adicionar</button>
                     </div>
                 `;
-                coursesContainer.appendChild(slide); // Adiciona o slide ao container
+                coursesContainer.appendChild(slide);
             });
-
-            // Inicializa o Swiper para o container atual
-            const swiper = initializeSwiper(coursesContainer.parentNode);
-            swiper.update(); // Atualiza o Swiper para reconhecer os novos slides
         }
 
-        function searchCourses() {
-            const searchInput = document.getElementById('search-input').value.toLowerCase();
-            const filteredCourses = courses.filter(course => course.nome.toLowerCase().includes(searchInput));
-            renderCoursesByCategory(filteredCourses);
+        function adicionarAoCarrinho(nomeCurso, precoCurso, imagemCurso) {
+            const cursoExistente = cart.find(item => item.nome === nomeCurso);
+            if (cursoExistente) {
+                mostrarToastExiste('Este curso já está no carrinho!'); // Mensagem para curso adicionado
+                return;
+            }
+            cart.push({ nome: nomeCurso, preco: precoCurso, imagem: imagemCurso });
+            atualizarCarrinho();
+            mostrarToast('Curso adicionado!'); // Mensagem para curso adicionado
         }
 
-        document.getElementById('search-input').addEventListener('input', searchCourses);
+        function mostrarToast(mensagem) {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = `<i class="fas fa-check"></i> ${mensagem}`; // Adiciona ícone e mensagem
+            toast.classList.remove('hidden'); // Remove a classe hidden para mostrar o toast
+            setTimeout(() => {
+                toast.classList.add('hidden'); // Oculta o toast após 3 segundos
+            }, 3000); // Tempo em milissegundos
+        }
+
+        function mostrarToastExiste(mensagem) {
+            const toast = document.getElementById('toastexiste');
+            toast.innerHTML = `<i class="fa-regular fa-copy"></i> ${mensagem}`; // Adiciona ícone e mensagem
+            toast.classList.remove('hidden'); // Remove a classe hidden para mostrar o toast
+            setTimeout(() => {
+                toast.classList.add('hidden'); // Oculta o toast após 3 segundos
+            }, 3000); // Tempo em milissegundos
+        }
+
+
+        function atualizarCarrinho() {
+            const cartBadge = document.getElementById('cart-badge');
+            const cartItems = document.getElementById('cart-items');
+            const emptyCartMessage = document.getElementById('empty-cart-message');
+            const checkoutButton = document.getElementById('checkout-button');
+            const clearCartButton = document.getElementById('clear-cart-button');
+            const totalPriceElement = document.getElementById('total-price');
+            const totalContainer = document.getElementById('total-container');
+
+            cartBadge.innerText = cart.length;
+
+            cartItems.innerHTML = '';
+            let total = 0; // Inicializa o total
+            if (cart.length === 0) {
+                emptyCartMessage.classList.remove('hidden');
+                checkoutButton.classList.add('hidden');
+                clearCartButton.classList.add('hidden'); // Esconde o botão de esvaziar o carrinho
+                totalContainer.classList.add('hidden'); // Esconde o total
+            } else {
+                emptyCartMessage.classList.add('hidden');
+                checkoutButton.classList.remove('hidden');
+                clearCartButton.classList.remove('hidden'); // Mostra o botão de esvaziar o carrinho
+                totalContainer.classList.remove('hidden'); // Mostra o total
+                cart.forEach((item, index) => {
+                    cartItems.innerHTML += `
+                        <div class="flex items-center mb-2">
+                            <img src="${item.imagem}" alt="${item.nome}" class="h-16 w-16 object-cover rounded mr-2">
+                            <div class="flex-1">
+                                <span class="block font-semibold">${item.nome}</span>
+                                <span class="block text-gray-600">${item.preco}$00</span> <!-- Usando o símbolo de dólar -->
+                            </div>
+                            <button class="text-gray-400" onclick="removerDoCarrinho(${index})">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>`;
+                    total += item.preco; // Adiciona o preço ao total
+                });
+            }
+            totalPriceElement.innerText = `${total.toFixed(0)}$00`; // Atualiza o total no modal
+        }
+
+        function removerDoCarrinho(index) {
+            cart.splice(index, 1);
+            atualizarCarrinho();
+        }
+
         document.getElementById('cart-button').addEventListener('click', () => {
-            document.getElementById('cart-modal').classList.toggle('hidden');
+            const cartModal = document.getElementById('cart-modal');
+            cartModal.style.display = 'flex'; // Exibe o modal ao clicar no carrinho
+            atualizarCarrinho(); // Atualiza o carrinho ao abrir o modal
         });
 
         document.getElementById('close-modal').addEventListener('click', () => {
-            document.getElementById('cart-modal').classList.add('hidden');
+            const cartModal = document.getElementById('cart-modal');
+            cartModal.style.display = 'none'; // Oculta o modal ao clicar no ícone de fechar
         });
 
         document.getElementById('checkout-button').addEventListener('click', () => {
@@ -210,65 +319,7 @@
             atualizarCarrinho();
         });
 
-        function adicionarAoCarrinho(nomeCurso, precoCurso) {
-            const cursoExistente = cart.find(item => item.nome === nomeCurso);
-            if (cursoExistente) {
-                mostrarToast('duplicate-course-message');
-                return;
-            }
-            cart.push({ nome: nomeCurso, preco: precoCurso });
-            atualizarCarrinho();
-            mostrarToast('toast');
-        }
-
-        function mostrarToast(toastId) {
-            const toast = document.getElementById(toastId);
-            toast.classList.remove('hidden');
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 3000);
-        }
-
-        function atualizarCarrinho() {
-            const cartBadge = document.getElementById('cart-badge');
-            const cartItems = document.getElementById('cart-items');
-            const emptyCartMessage = document.getElementById('empty-cart-message');
-            const checkoutButton = document.getElementById('checkout-button');
-            const clearCartButton = document.getElementById('clear-cart-button');
-
-            cartBadge.innerText = cart.length;
-
-            cartItems.innerHTML = '';
-            if (cart.length === 0) {
-                emptyCartMessage.classList.remove('hidden');
-                checkoutButton.classList.add('hidden');
-                clearCartButton.classList.add('hidden');
-            } else {
-                emptyCartMessage.classList.add('hidden');
-                checkoutButton.classList.remove('hidden');
-                clearCartButton.classList.remove('hidden');
-                cart.forEach((item, index) => {
-                    cartItems.innerHTML += `<div class="flex items-center mb-2">
-                        <img src="${item.imagem}" alt="${item.nome}" class="h-16 w-16 object-cover rounded mr-2">
-                        <div class="flex-1">
-                            <span class="block font-semibold">${item.nome}</span>
-                            <span class="block text-gray-600">${item.preco} Escudos</span>
-                        </div>
-                        <button class="text-red-500" onclick="removerDoCarrinho(${index})">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>`;
-                });
-            }
-        }
-
-        function removerDoCarrinho(index) {
-            cart.splice(index, 1);
-            atualizarCarrinho();
-        }
-
-        // Chama a função para carregar os cursos por categoria
-        loadCoursesByCategory();
+        loadCourses();
     </script>
 </body>
 </html>
